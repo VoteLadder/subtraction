@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Mask Subtraction with AI **TEST**</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --text-color: #e0e0e0;
+            --accent-color: #4a69bd;
+            --accent-hover: #6a89cc;
+            --warning-color: #c0392b;
+            --instruction-bg: #16213e;
+            --input-bg: #0f3460;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+        }
+        #paste-area {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed var(--accent-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--input-bg);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #paste-area:hover {
+            background-color: var(--instruction-bg);
+        }
+        #paste-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        #upload-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #file-input, #capture-input {
+            display: none;
+        }
+        .button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: var(--accent-hover);
+        }
+        #output-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #output-image {
+            max-width: 256px;
+            max-height: 256px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+        }
+        .warning {
+            background-color: var(--warning-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background-color: var(--instruction-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .logos {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            background-color: var(--input-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            color: var(--text-color);
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>No Mask Subtraction with AI **TEST**</h1>
+
+    <div class="warning">
+        NOT FOR MEDICAL USE - JUST A TRIAL SITE!<br>
+        DO NOT SHARE PATIENT INFO!
+    </div>
+
+    <div class="instructions">
+        <h3>How to use:</h3>
+        <ul>
+            <li>Desktop: Press Windows key + Shift + S to capture, then paste here</li>
+            <li>Mobile/Desktop: Drag and drop an image file</li>
+            <li>Mobile: Take a picture with your camera</li>
+            <li>Select a file from your device</li>
+        </ul>
+    </div>
+
+    <div id="paste-area">
+        <p>Click to upload or paste an image here</p>
+    </div>
+
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <input type="file" id="file-input" name="file" accept="image/*">
+        <input type="file" id="capture-input" name="file" accept="image/*" capture="environment">
+        <button type="button" class="button" onclick="document.getElementById('file-input').click()">Choose File</button>
+        <button type="button" class="button" onclick="document.getElementById('capture-input').click()">Take Picture</button>
+        <button type="submit" class="button">Process Image</button>
+    </form>
+
+    <div id="output-container">
+        <img id="output-image" style="display: none;">
+    </div>
+
+    <div class="logos">
+        <div class="logo">Logo 1</div>
+        <div class="logo">Logo 2</div>
+    </div>
+
+    <script>
+        // The JavaScript remains the same as in the previous version
+        const pasteArea = document.getElementById('paste-area');
+        const fileInput = document.getElementById('file-input');
+        const captureInput = document.getElementById('capture-input');
+        const form = document.getElementById('upload-form');
+        const outputImage = document.getElementById('output-image');
+
+        pasteArea.addEventListener('click', () => fileInput.click());
+
+        pasteArea.addEventListener('paste', function (event) {
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    handleImageFile(blob);
+                }
+            }
+        });
+
+        fileInput.addEventListener('change', function (event) {
+            if (event.target.files && event.target.files[0]) {
+                handleImageFile(event.target.files[0]);
+            }
+        });
+
+        captureInput.addEventListener('change', function (event) {
+            if (event.target.files && event.target.files[0]) {
+                handleImageFile(event.target.files[0]);
+            }
+        });
+
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.onload = function() {
+                    pasteArea.innerHTML = '';
+                    pasteArea.appendChild(img);
+                };
+                img.src = e.target.result;
+
+                // Update file input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                outputImage.src = url;
+                outputImage.style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // Prevent default drag-and-drop behavior
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            pasteArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Handle dropped files
+        pasteArea.addEventListener('drop', function(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            if (files.length) {
+                handleImageFile(files[0]);
+            }
+        }, false);
+    </script>
+</body>
+</html>
