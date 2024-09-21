@@ -16,7 +16,10 @@ dist/
 *.log
 *.tmp
 *.pth
+*.jpg
+*.png
 
 # Ignore IDE specific settings (e.g., VSCode)
 .vscode/
 .idea/
+

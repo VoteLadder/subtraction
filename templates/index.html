@@ -13,6 +13,8 @@
             --warning-color: #c0392b;
             --instruction-bg: #16213e;
             --input-bg: #0f3460;
+            --engage-color: #e74c3c;
+            --engage-hover: #c0392b;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,8 +26,9 @@
             padding: 20px;
         }
         h1 {
-            color: var(--accent-color);
+            color: #808080;
             text-align: center;
+            font-size: 1.5em;
         }
         #paste-area {
             width: 100%;
@@ -39,6 +42,7 @@
             background-color: var(--input-bg);
             cursor: pointer;
             transition: background-color 0.3s ease;
+            position: relative;
         }
         #paste-area:hover {
             background-color: var(--instruction-bg);
@@ -50,7 +54,7 @@
         }
         #upload-form {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
         }
         #file-input, #capture-input {
@@ -63,12 +67,19 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: background-color 0.3s ease;
-            margin: 5px;
+            flex-grow: 1;
+            margin: 0 5px;
         }
         .button:hover {
             background-color: var(--accent-hover);
+        }
+        .engage-button {
+            background-color: var(--engage-color);
+        }
+        .engage-button:hover {
+            background-color: var(--engage-hover);
         }
         #output-container {
             margin-top: 20px;
@@ -94,6 +105,7 @@
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
+            font-size: 0.9em;
         }
         .logos {
             display: flex;
@@ -114,8 +126,12 @@
             body {
                 padding: 10px;
             }
+            #upload-form {
+                flex-direction: column;
+            }
             .button {
                 width: 100%;
+                margin: 5px 0;
             }
         }
     </style>
@@ -146,8 +162,8 @@
         <input type="file" id="file-input" name="file" accept="image/*">
         <input type="file" id="capture-input" name="file" accept="image/*" capture="environment">
         <button type="button" class="button" onclick="document.getElementById('file-input').click()">Choose File</button>
-        <button type="button" class="button" onclick="document.getElementById('capture-input').click()">Take Picture</button>
-        <button type="submit" class="button">Process Image</button>
+        <button type="button" class="button" onclick="document.getElementById('capture-input').click()">📷 Take Picture</button>
+        <button type="submit" class="button engage-button">Engage</button>
     </form>
 
     <div id="output-container">
@@ -160,7 +176,6 @@
     </div>
 
     <script>
-        // The JavaScript remains the same as in the previous version
         const pasteArea = document.getElementById('paste-area');
         const fileInput = document.getElementById('file-input');
         const captureInput = document.getElementById('capture-input');
@@ -195,36 +210,77 @@
         function handleImageFile(file) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                const img = document.createElement('img');
+                const img = new Image();
                 img.onload = function() {
-                    pasteArea.innerHTML = '';
-                    pasteArea.appendChild(img);
+                    // Create a canvas to resize and convert the image
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 256;
+
+                    // Draw the image onto the canvas, resizing it
+                    ctx.drawImage(img, 0, 0, 256, 256);
+
+                    // Get image data and convert to grayscale
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < imageData.data.length; i += 4) {
+                        const avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+                        imageData.data[i] = avg;      // Red channel
+                        imageData.data[i + 1] = avg;  // Green channel
+                        imageData.data[i + 2] = avg;  // Blue channel
+                        // Alpha channel remains unchanged
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+
+                    // Convert the canvas to a Blob in PNG format
+                    canvas.toBlob(function(blob) {
+                        // Create a new File from the Blob
+                        const resizedFile = new File([blob], 'resized_image.png', { type: 'image/png' });
+
+                        // Update the file input with the resized file
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(resizedFile);
+                        fileInput.files = dataTransfer.files;
+
+                        // Optionally, display the resized image in the paste area
+                        pasteArea.innerHTML = '';
+                        const resizedImg = new Image();
+                        resizedImg.src = URL.createObjectURL(blob);
+                        resizedImg.onload = function() {
+                            URL.revokeObjectURL(resizedImg.src); // Free memory
+                        };
+                        pasteArea.appendChild(resizedImg);
+                    }, 'image/png');
                 };
                 img.src = e.target.result;
-
-                // Update file input
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
             };
             reader.readAsDataURL(file);
         }
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
+
             const formData = new FormData(form);
-            
+
             fetch('/', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
             .then(blob => {
                 const url = URL.createObjectURL(blob);
                 outputImage.src = url;
                 outputImage.style.display = 'block';
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error processing your image.');
+            });
         });
 
         // Prevent default drag-and-drop behavior
