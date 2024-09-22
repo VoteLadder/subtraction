@@ -13,8 +13,9 @@
             --warning-color: #c0392b;
             --instruction-bg: #16213e;
             --input-bg: #0f3460;
-            --engage-color: #e74c3c;
-            --engage-hover: #c0392b;
+            --engage-ready-color: gold;
+            --engage-hover-color: #f5c500;
+            --engage-disabled-color: grey;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -76,20 +77,31 @@
             background-color: var(--accent-hover);
         }
         .engage-button {
-            background-color: var(--engage-color);
+            background-color: var(--engage-disabled-color);
         }
-        .engage-button:hover {
-            background-color: var(--engage-hover);
+        .engage-button.ready {
+            background-color: var(--engage-ready-color);
+            cursor: pointer;
+        }
+        .engage-button.ready:hover {
+            background-color: var(--engage-hover-color);
+        }
+        .engage-button:disabled {
+            background-color: var(--engage-disabled-color);
+            cursor: not-allowed;
         }
         #output-container {
             margin-top: 20px;
-            text-align: center;
+            text-align: center; /* Center the image */
         }
         #output-image {
             max-width: 256px;
             max-height: 256px;
             border: 1px solid var(--accent-color);
             border-radius: 4px;
+            display: block;
+            margin-left: auto; 
+            margin-right: auto;
         }
         .warning {
             background-color: var(--warning-color);
@@ -115,12 +127,18 @@
         .logo {
             width: 100px;
             height: 100px;
-            background-color: var(--input-bg);
+            background-color: transparent; /* No background color */
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 5px;
             color: var(--text-color);
+        }
+
+        .logo-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         @media (max-width: 600px) {
             body {
@@ -163,7 +181,7 @@
         <input type="file" id="capture-input" name="file" accept="image/*" capture="environment">
         <button type="button" class="button" onclick="document.getElementById('file-input').click()">Choose File</button>
         <button type="button" class="button" onclick="document.getElementById('capture-input').click()">📷 Take Picture</button>
-        <button type="submit" class="button engage-button">Engage</button>
+        <button type="submit" class="button engage-button" id="engage-button" disabled>Run Model</button>
     </form>
 
     <div id="output-container">
@@ -171,7 +189,9 @@
     </div>
 
     <div class="logos">
-        <div class="logo">Logo 1</div>
+        <div class="logo">
+            <img src="static/logo1.png" alt="Logo 1" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+        </div>
         <div class="logo">Logo 2</div>
     </div>
 
@@ -181,6 +201,7 @@
         const captureInput = document.getElementById('capture-input');
         const form = document.getElementById('upload-form');
         const outputImage = document.getElementById('output-image');
+        const engageButton = document.getElementById('engage-button');
 
         pasteArea.addEventListener('click', () => fileInput.click());
 
@@ -207,12 +228,14 @@
             }
         });
 
+        // Disable the Engage button by default
+        engageButton.disabled = true;
+
         function handleImageFile(file) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 const img = new Image();
                 img.onload = function() {
-                    // Create a canvas to resize and convert the image
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     canvas.width = 256;
@@ -228,13 +251,11 @@
                         imageData.data[i] = avg;      // Red channel
                         imageData.data[i + 1] = avg;  // Green channel
                         imageData.data[i + 2] = avg;  // Blue channel
-                        // Alpha channel remains unchanged
                     }
                     ctx.putImageData(imageData, 0, 0);
 
                     // Convert the canvas to a Blob in PNG format
                     canvas.toBlob(function(blob) {
-                        // Create a new File from the Blob
                         const resizedFile = new File([blob], 'resized_image.png', { type: 'image/png' });
 
                         // Update the file input with the resized file
@@ -250,6 +271,10 @@
                             URL.revokeObjectURL(resizedImg.src); // Free memory
                         };
                         pasteArea.appendChild(resizedImg);
+
+                        // Enable the Engage button now that the file is ready
+                        engageButton.disabled = false;
+                        engageButton.classList.add('ready');
                     }, 'image/png');
                 };
                 img.src = e.target.result;
@@ -259,6 +284,10 @@
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
+
+            // Disable the Engage button to prevent multiple submissions
+            engageButton.disabled = true;
+            engageButton.classList.remove('ready');
 
             const formData = new FormData(form);
 
