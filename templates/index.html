@@ -190,7 +190,7 @@
 
     <div class="logos">
         <div class="logo">
-            <img src="static/logo1.png" alt="Logo 1" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            <img src="static/logo1.png" alt="Logo 1" class="logo-image">
         </div>
         <div class="logo">Logo 2</div>
     </div>
@@ -202,6 +202,7 @@
         const form = document.getElementById('upload-form');
         const outputImage = document.getElementById('output-image');
         const engageButton = document.getElementById('engage-button');
+        let resizedFile;
 
         pasteArea.addEventListener('click', () => fileInput.click());
 
@@ -254,32 +255,52 @@
                     }
                     ctx.putImageData(imageData, 0, 0);
 
-                    // Convert the canvas to a Blob in PNG format
-                    canvas.toBlob(function(blob) {
-                        const resizedFile = new File([blob], 'resized_image.png', { type: 'image/png' });
+                    // Convert the canvas to a Data URL
+                    const dataURL = canvas.toDataURL('image/png');
 
-                        // Update the file input with the resized file
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(resizedFile);
-                        fileInput.files = dataTransfer.files;
+                    // Convert Data URL to Blob
+                    const blob = dataURLToBlob(dataURL);
 
-                        // Optionally, display the resized image in the paste area
-                        pasteArea.innerHTML = '';
-                        const resizedImg = new Image();
-                        resizedImg.src = URL.createObjectURL(blob);
-                        resizedImg.onload = function() {
-                            URL.revokeObjectURL(resizedImg.src); // Free memory
-                        };
-                        pasteArea.appendChild(resizedImg);
+                    // Create a new File from the Blob
+                    resizedFile = new File([blob], 'resized_image.png', { type: 'image/png' });
 
-                        // Enable the Engage button now that the file is ready
-                        engageButton.disabled = false;
-                        engageButton.classList.add('ready');
-                    }, 'image/png');
+                    // Optionally, display the resized image in the paste area
+                    pasteArea.innerHTML = '';
+                    const resizedImg = new Image();
+                    resizedImg.src = dataURL;
+                    resizedImg.onload = function() {
+                        URL.revokeObjectURL(resizedImg.src); // Free memory
+                    };
+                    pasteArea.appendChild(resizedImg);
+
+                    // Enable the Engage button now that the file is ready
+                    engageButton.disabled = false;
+                    engageButton.classList.add('ready');
+                };
+                img.onerror = function() {
+                    alert('There was an error loading the image.');
                 };
                 img.src = e.target.result;
             };
+            reader.onerror = function() {
+                alert('There was an error reading the file.');
+            };
             reader.readAsDataURL(file);
+        }
+
+        // Convert Data URL to Blob
+        function dataURLToBlob(dataURL) {
+            const parts = dataURL.split(',');
+            const byteString = atob(parts[1]);
+            const mimeString = parts[0].split(':')[1].split(';')[0];
+
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            return new Blob([ab], { type: mimeString });
         }
 
         form.addEventListener('submit', function (event) {
@@ -289,7 +310,8 @@
             engageButton.disabled = true;
             engageButton.classList.remove('ready');
 
-            const formData = new FormData(form);
+            const formData = new FormData();
+            formData.append('file', resizedFile);
 
             fetch('/', {
                 method: 'POST',
