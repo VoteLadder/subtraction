@@ -19,41 +19,72 @@
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.4;
             color: var(--text-color);
             background-color: var(--bg-color);
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .loading-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .loading-message {
+            color: var(--text-color);
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         h1 {
             color: #808080;
             text-align: center;
-            font-size: 1.5em;
+            font-size: 1.3em;
+            margin: 10px 0;
         }
         .warning {
             background-color: var(--warning-color);
             color: var(--text-color);
-            padding: 10px;
+            padding: 5px;
             border-radius: 5px;
             text-align: center;
             font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 0.8em; /* Smaller font size for the warning */
+            margin-bottom: 10px;
+            font-size: 0.8em;
         }
         #paste-area {
             width: 100%;
-            height: 200px;
+            height: 150px;
             border: 2px dashed var(--accent-color);
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             background-color: var(--input-bg);
             cursor: pointer;
             transition: background-color 0.3s ease;
-            position: relative;
         }
         #paste-area:hover {
             background-color: var(--instruction-bg);
@@ -67,7 +98,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         #file-input, #capture-input {
             display: none;
@@ -75,14 +106,14 @@
         .button {
             background-color: var(--accent-color);
             color: var(--text-color);
-            padding: 10px 20px;
+            padding: 8px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: background-color 0.3s ease;
             flex-grow: 1;
-            margin: 0 5px;
+            margin: 0 3px;
         }
         .button:hover {
             background-color: var(--accent-hover);
@@ -102,13 +133,13 @@
             cursor: not-allowed;
         }
         .sample-container {
-            margin: 20px 0;
+            margin: 10px 0;
             text-align: center;
         }
         .sample-container button {
-            margin: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
+            margin: 3px;
+            padding: 8px 15px;
+            font-size: 12px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -120,8 +151,8 @@
             background-color: var(--accent-hover);
         }
         #output-container {
-            margin-top: 20px;
-            text-align: center; /* Center the image */
+            margin-top: 10px;
+            text-align: center;
         }
         #output-image {
             max-width: 256px;
@@ -129,56 +160,50 @@
             border: 1px solid var(--accent-color);
             border-radius: 4px;
             display: block;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
         .logos {
             display: flex;
             justify-content: space-around;
-            margin-top: 30px;
+            margin-top: 15px;
         }
         .logo {
-            width: 200px;
-            height: 100px;
-            background-color: transparent; /* No background color */
+            width: 150px;
+            height: 75px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 5px;
-            color: var(--text-color);
         }
-
         .logo-image {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
         }
         .contact-info {
-            margin-top: 40px;
+            margin-top: 20px;
             text-align: center;
-            font-size: 1.1em; /* Increase font size by two steps */
+            font-size: 0.9em;
         }
         .contact-info p {
-            margin: 5px 0;
+            margin: 3px 0;
         }
         .contact-info a {
-            color: gold; /* Set email link color to gold */
+            color: gold;
             text-decoration: none;
         }
         .contact-info a:hover {
             text-decoration: underline;
         }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            #upload-form {
-                flex-direction: column;
-            }
-            .button {
-                width: 100%;
-                margin: 5px 0;
-            }
+        .instructions {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .instructions h3 {
+            margin: 5px 0;
+        }
+        .instructions ul {
+            margin: 5px 0;
+            padding-left: 20px;
         }
     </style>
 </head>
@@ -193,21 +218,19 @@
     <div class="instructions">
         <h3>How to use:</h3>
         <ul>
-            <li>Desktop: Press Windows key + Shift + S to capture, then click outisde the box and paste CTRL +V</li>
+            <li>Desktop: Press Windows key + Shift + S to capture, then paste (CTRL+V)</li>
             <li>Mobile/Desktop: Drag and drop an image file</li>
             <li>Mobile: Take a picture with your camera</li>
             <li>Select a file from your device</li>
         </ul>
     </div>
 
-    <!-- Sample Case Buttons -->
     <div class="sample-container">
         <button onclick="submitSample('static/sample1.png')">Sample 1</button>
         <button onclick="submitSample('static/sample2.png')">Sample 2</button>
         <button onclick="submitSample('static/sample3.png')">Sample 3</button>
     </div>
 
-    <!-- Paste Area -->
     <div id="paste-area">
         <p>Click to upload or paste an image here</p>
     </div>
@@ -234,8 +257,13 @@
     </div>
 
     <div class="contact-info">
-        <p>Email: <a href="mailto:cohenemil@gmail.com">cohenemil@gmail.com</a></p>
+        <p>Conatct: <a href="mailto:cohenemil@gmail.com">cohenemil@gmail.com</a></p>
         <p>Our team: Emil Cohen, MD FSIR; Muhammad Bilal, PhD; and Joshua Halpern</p>
+    </div>
+
+    <div class="loading-container" id="loading-container">
+        <div class="spinner"></div>
+        <div class="loading-message">Processing image...</div>
     </div>
 
     <script>
@@ -245,7 +273,25 @@
         const form = document.getElementById('upload-form');
         const outputImage = document.getElementById('output-image');
         const engageButton = document.getElementById('engage-button');
+        const loadingContainer = document.getElementById('loading-container');
         let resizedFile;
+
+        // Debounce function to limit rapid clicking
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Apply debounce to button click handlers
+        const debouncedSubmitSample = debounce(submitSample, 500);
+        const debouncedHandleImageFile = debounce(handleImageFile, 500);
 
         // Submit sample cases
         function submitSample(samplePath) {
@@ -261,28 +307,29 @@
                 });
         }
 
-        pasteArea.addEventListener('click', () => fileInput.click());
-
-        pasteArea.addEventListener('paste', function (event) {
+        // Listen for paste events on the entire document
+        document.addEventListener('paste', function (event) {
             const items = (event.clipboardData || event.originalEvent.clipboardData).items;
             for (let index in items) {
                 const item = items[index];
                 if (item.kind === 'file' && item.type.startsWith('image/')) {
                     const blob = item.getAsFile();
-                    handleImageFile(blob);
+                    debouncedHandleImageFile(blob);
                 }
             }
         });
 
+        pasteArea.addEventListener('click', () => fileInput.click());
+
         fileInput.addEventListener('change', function (event) {
             if (event.target.files && event.target.files[0]) {
-                handleImageFile(event.target.files[0]);
+                debouncedHandleImageFile(event.target.files[0]);
             }
         });
 
         captureInput.addEventListener('change', function (event) {
             if (event.target.files && event.target.files[0]) {
-                handleImageFile(event.target.files[0]);
+                debouncedHandleImageFile(event.target.files[0]);
             }
         });
 
@@ -329,13 +376,9 @@
             return new Blob([ab], { type: mimeString });
         }
 
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            engageButton.disabled = true;
-            engageButton.classList.remove('ready');
-
-            const formData = new FormData();
-            formData.append('file', resizedFile);
+        const debouncedSubmit = debounce(function(formData) {
+            // Show loading indicator
+            loadingContainer.style.display = 'flex';
 
             fetch('/', {
                 method: 'POST',
@@ -351,11 +394,30 @@
                 const url = URL.createObjectURL(blob);
                 outputImage.src = url;
                 outputImage.style.display = 'block';
+                engageButton.disabled = false;
+                engageButton.classList.add('ready');
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('There was an error processing your image.');
+                engageButton.disabled = false;
+                engageButton.classList.add('ready');
+            })
+            .finally(() => {
+                // Hide loading indicator
+                loadingContainer.style.display = 'none';
             });
+        }, 1000);
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            engageButton.disabled = true;
+            engageButton.classList.remove('ready');
+
+            const formData = new FormData();
+            formData.append('file', resizedFile);
+
+            debouncedSubmit(formData);
         });
 
         // Prevent default drag-and-drop behavior
@@ -374,9 +436,15 @@
             let dt = e.dataTransfer;
             let files = dt.files;
             if (files.length) {
-                handleImageFile(files[0]);
+                debouncedHandleImageFile(files[0]);
             }
         }, false);
+
+        // Update onclick handlers for sample buttons
+        document.querySelectorAll('.sample-container button').forEach(button => {
+            const samplePath = button.getAttribute('onclick').match(/'(.+)'/)[1];
+            button.onclick = () => debouncedSubmitSample(samplePath);
+        });
     </script>
 </body>
 </html>
